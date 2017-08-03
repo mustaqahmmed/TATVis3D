@@ -1,0 +1,50 @@
+// PHONG LIGHTING
+
+#version 400 core
+
+precision mediump float;
+
+uniform int RenderMode;	// 0: Base | 1: Text |
+uniform bool EnableLight;
+uniform bool EnableTexture;
+
+uniform vec3 Color;
+uniform float Alpha;
+uniform vec3 MaterialAmbientColor;
+uniform vec3 MaterialDiffuseColor;
+uniform vec3 MaterialSpecularColor;
+uniform sampler2D SamplerTexture;
+
+in vec3 LightAmbientFactor;
+in vec3 LightDiffuseFactor;
+in vec3 LightSpecularFactor;
+in vec2 vTexCoord;
+
+void main()
+{
+	if(!EnableLight){
+		if(!EnableTexture){
+			gl_FragColor = vec4(Color, Alpha);
+		}
+		else{
+			gl_FragColor = texture2D(SamplerTexture, vTexCoord);	
+		}
+	}
+	else{
+		if(!EnableTexture){
+			vec3 ambientColor = MaterialAmbientColor * LightAmbientFactor;
+			vec3 diffuseColor = MaterialDiffuseColor * LightDiffuseFactor;
+			vec3 specularColor = MaterialSpecularColor * LightSpecularFactor;
+			vec3 rgb = ambientColor + diffuseColor + specularColor;
+			gl_FragColor = vec4(min(rgb, vec3(1.0)), Alpha);
+		}
+		else{
+			vec4 texColor = texture2D(SamplerTexture, vTexCoord);
+			vec3 diffuseColor = texColor.rgb * LightDiffuseFactor;
+			vec3 specularColor = vec3(0.0);
+			vec3 rgb =  diffuseColor + specularColor;
+			gl_FragColor = vec4(min(rgb, vec3(1.0)), texColor.a);
+		}
+	}
+
+}
